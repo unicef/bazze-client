@@ -1,0 +1,36 @@
+*.pyc
+.DS_Store
+node_modules
+/dist
+
+
+# local env files
+.env.local
+.env.*.local
+.env
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Editor directories and files
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+deploy.tar
+yarn.lock
+package-lock.json
+#*.json
+*.pickle
+*.pkl
+*.cache
+
+#git hub workflows
+*workflow.yml

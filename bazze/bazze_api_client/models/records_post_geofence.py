@@ -8,27 +8,22 @@ from ... import errors
 from ...client import Client
 from ...models.query_execution import QueryExecution
 from ...models.results_scrolling_records import ResultsScrollingRecords
+from ...models.selectors import Selectors
 from ...datatypes import UNSET, Response
-
 
 
 def _get_kwargs(
     *,
     client: Client,
+    json_body: Selectors,
     wait: bool = False,
     dryrun: bool = False,
     limit: str,
     horizontal_accuracy: float,
     from_date: datetime.datetime,
     to_date: datetime.datetime,
-    advertising_id: str,
-    ip_address: str,
-    wifi_ssid: str,
-    wifi_bssid: str,
-    country: str,
-    bazze_gps_country: str,
 ) -> Dict[str, Any]:
-    url = "{}/records".format(client.base_url)
+    url = "{}/records/multiple".format(client.base_url)
 
     headers: Dict[str, str] = client.get_headers()
     cookies: Dict[str, Any] = client.get_cookies()
@@ -40,47 +35,27 @@ def _get_kwargs(
 
     params["limit"] = limit
 
+    params["horizontal_accuracy"] = horizontal_accuracy
+
     json_from_date = from_date.isoformat()
-    
+
     params["from_date"] = json_from_date
 
     json_to_date = to_date.isoformat()
-    
+
     params["to_date"] = json_to_date
-    
-    # optional parameters 
-    
-    if horizontal_accuracy != '':
-        params["horizontal_accuracy"] = horizontal_accuracy
-
-    if country != '':
-        params["country"] = country
-    
-    if bazze_gps_country != '':
-        params["bazze_gps_country"] = bazze_gps_country
-    
-    if advertising_id != '':
-        params["advertising_id"] = advertising_id
-
-    if ip_address != '':    
-        params["ip_address"] = ip_address
-
-    if wifi_ssid != '':
-        params["wifi_ssid"] = wifi_ssid
-
-    if wifi_bssid != '':
-        params["wifi_bssid"] = wifi_bssid
-
-
 
     params = {k: v for k, v in params.items() if v is not UNSET and v is not None}
 
+    json_json_body = json_body.to_dict()
+
     return {
-        "method": "get",
+        "method": "post",
         "url": url,
         "headers": headers,
         "cookies": cookies,
         "timeout": client.get_timeout(),
+        "json": json_json_body,
         "params": params,
     }
 
@@ -131,28 +106,25 @@ def _build_response(
 def sync_detailed(
     *,
     client: Client,
+    json_body: Selectors,
     wait: bool = False,
     dryrun: bool = False,
     limit: str,
     horizontal_accuracy: float,
     from_date: datetime.datetime,
     to_date: datetime.datetime,
-    advertising_id: str,
-    ip_address: str,
-    wifi_ssid: str,
-    wifi_bssid: str,
-    country: str,
-    bazze_gps_country: str,
 ) -> Response[Union[Any, Union["QueryExecution", "ResultsScrollingRecords"]]]:
-    """Get records by selector
+    """Get records by multiple selectors
 
      ## Description
-    Get records by searching one or more selectors. This is an AND type query, meaning that it will
-    return
-    a record only if it matches ALL of the criteria.
+    Get records by searching numerous selector values and using a JSON object. It will return records
+    that have matching values for each specified selector, similar to an IN...AND query.
 
     **NOTE**: Each query return is limited to 20 million records. Records will be selected randomly from
-    the dataset.
+    the dataset. The JSON body cannot exceed 10 MB, AWS's API Gateway payload limit, which is roughly
+    equivalent to 3500 advertising IDs OR 6500 IP addresses.CIDR search is not supported in this
+    endpoint.
+    Please use our /records GET endpoint for CIDR.
 
     Args:
         wait (bool):
@@ -161,12 +133,7 @@ def sync_detailed(
         horizontal_accuracy (float):  Example: 50.
         from_date (datetime.datetime):  Example: 2021-06-01.
         to_date (datetime.datetime):  Example: 2021-06-05.
-        advertising_id (str):
-        ip_address (str):
-        wifi_ssid (str):  Example: TP-LINK.
-        wifi_bssid (str):
-        country (str):  Example: RU.
-        bazze_gps_country (str):  Example: RU.
+        json_body (Selectors):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -178,18 +145,13 @@ def sync_detailed(
 
     kwargs = _get_kwargs(
         client=client,
+        json_body=json_body,
         wait=wait,
         dryrun=dryrun,
         limit=limit,
         horizontal_accuracy=horizontal_accuracy,
         from_date=from_date,
         to_date=to_date,
-        advertising_id=advertising_id,
-        ip_address=ip_address,
-        wifi_ssid=wifi_ssid,
-        wifi_bssid=wifi_bssid,
-        country=country,
-        bazze_gps_country=bazze_gps_country,
     )
 
     response = httpx.request(
@@ -203,28 +165,25 @@ def sync_detailed(
 def sync(
     *,
     client: Client,
+    json_body: Selectors,
     wait: bool = False,
     dryrun: bool = False,
     limit: str,
     horizontal_accuracy: float,
     from_date: datetime.datetime,
     to_date: datetime.datetime,
-    advertising_id: str,
-    ip_address: str,
-    wifi_ssid: str,
-    wifi_bssid: str,
-    country: str,
-    bazze_gps_country: str,
 ) -> Optional[Union[Any, Union["QueryExecution", "ResultsScrollingRecords"]]]:
-    """Get records by selector
+    """Get records by multiple selectors
 
      ## Description
-    Get records by searching one or more selectors. This is an AND type query, meaning that it will
-    return
-    a record only if it matches ALL of the criteria.
+    Get records by searching numerous selector values and using a JSON object. It will return records
+    that have matching values for each specified selector, similar to an IN...AND query.
 
     **NOTE**: Each query return is limited to 20 million records. Records will be selected randomly from
-    the dataset.
+    the dataset. The JSON body cannot exceed 10 MB, AWS's API Gateway payload limit, which is roughly
+    equivalent to 3500 advertising IDs OR 6500 IP addresses.CIDR search is not supported in this
+    endpoint.
+    Please use our /records GET endpoint for CIDR.
 
     Args:
         wait (bool):
@@ -233,12 +192,7 @@ def sync(
         horizontal_accuracy (float):  Example: 50.
         from_date (datetime.datetime):  Example: 2021-06-01.
         to_date (datetime.datetime):  Example: 2021-06-05.
-        advertising_id (str):
-        ip_address (str):
-        wifi_ssid (str):  Example: TP-LINK.
-        wifi_bssid (str):
-        country (str):  Example: RU.
-        bazze_gps_country (str):  Example: RU.
+        json_body (Selectors):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -250,46 +204,38 @@ def sync(
 
     return sync_detailed(
         client=client,
+        json_body=json_body,
         wait=wait,
         dryrun=dryrun,
         limit=limit,
         horizontal_accuracy=horizontal_accuracy,
         from_date=from_date,
         to_date=to_date,
-        advertising_id=advertising_id,
-        ip_address=ip_address,
-        wifi_ssid=wifi_ssid,
-        wifi_bssid=wifi_bssid,
-        country=country,
-        bazze_gps_country=bazze_gps_country,
     ).parsed
 
 
 async def asyncio_detailed(
     *,
     client: Client,
+    json_body: Selectors,
     wait: bool = False,
     dryrun: bool = False,
     limit: str,
     horizontal_accuracy: float,
     from_date: datetime.datetime,
     to_date: datetime.datetime,
-    advertising_id: str,
-    ip_address: str,
-    wifi_ssid: str,
-    wifi_bssid: str,
-    country: str,
-    bazze_gps_country: str,
 ) -> Response[Union[Any, Union["QueryExecution", "ResultsScrollingRecords"]]]:
-    """Get records by selector
+    """Get records by multiple selectors
 
      ## Description
-    Get records by searching one or more selectors. This is an AND type query, meaning that it will
-    return
-    a record only if it matches ALL of the criteria.
+    Get records by searching numerous selector values and using a JSON object. It will return records
+    that have matching values for each specified selector, similar to an IN...AND query.
 
     **NOTE**: Each query return is limited to 20 million records. Records will be selected randomly from
-    the dataset.
+    the dataset. The JSON body cannot exceed 10 MB, AWS's API Gateway payload limit, which is roughly
+    equivalent to 3500 advertising IDs OR 6500 IP addresses.CIDR search is not supported in this
+    endpoint.
+    Please use our /records GET endpoint for CIDR.
 
     Args:
         wait (bool):
@@ -298,12 +244,7 @@ async def asyncio_detailed(
         horizontal_accuracy (float):  Example: 50.
         from_date (datetime.datetime):  Example: 2021-06-01.
         to_date (datetime.datetime):  Example: 2021-06-05.
-        advertising_id (str):
-        ip_address (str):
-        wifi_ssid (str):  Example: TP-LINK.
-        wifi_bssid (str):
-        country (str):  Example: RU.
-        bazze_gps_country (str):  Example: RU.
+        json_body (Selectors):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -315,18 +256,13 @@ async def asyncio_detailed(
 
     kwargs = _get_kwargs(
         client=client,
+        json_body=json_body,
         wait=wait,
         dryrun=dryrun,
         limit=limit,
         horizontal_accuracy=horizontal_accuracy,
         from_date=from_date,
         to_date=to_date,
-        advertising_id=advertising_id,
-        ip_address=ip_address,
-        wifi_ssid=wifi_ssid,
-        wifi_bssid=wifi_bssid,
-        country=country,
-        bazze_gps_country=bazze_gps_country,
     )
 
     async with httpx.AsyncClient(verify=client.verify_ssl) as _client:
@@ -338,28 +274,25 @@ async def asyncio_detailed(
 async def asyncio(
     *,
     client: Client,
+    json_body: Selectors,
     wait: bool = False,
     dryrun: bool = False,
     limit: str,
     horizontal_accuracy: float,
     from_date: datetime.datetime,
     to_date: datetime.datetime,
-    advertising_id: str,
-    ip_address: str,
-    wifi_ssid: str,
-    wifi_bssid: str,
-    country: str,
-    bazze_gps_country: str,
 ) -> Optional[Union[Any, Union["QueryExecution", "ResultsScrollingRecords"]]]:
-    """Get records by selector
+    """Get records by multiple selectors
 
      ## Description
-    Get records by searching one or more selectors. This is an AND type query, meaning that it will
-    return
-    a record only if it matches ALL of the criteria.
+    Get records by searching numerous selector values and using a JSON object. It will return records
+    that have matching values for each specified selector, similar to an IN...AND query.
 
     **NOTE**: Each query return is limited to 20 million records. Records will be selected randomly from
-    the dataset.
+    the dataset. The JSON body cannot exceed 10 MB, AWS's API Gateway payload limit, which is roughly
+    equivalent to 3500 advertising IDs OR 6500 IP addresses.CIDR search is not supported in this
+    endpoint.
+    Please use our /records GET endpoint for CIDR.
 
     Args:
         wait (bool):
@@ -368,12 +301,7 @@ async def asyncio(
         horizontal_accuracy (float):  Example: 50.
         from_date (datetime.datetime):  Example: 2021-06-01.
         to_date (datetime.datetime):  Example: 2021-06-05.
-        advertising_id (str):
-        ip_address (str):
-        wifi_ssid (str):  Example: TP-LINK.
-        wifi_bssid (str):
-        country (str):  Example: RU.
-        bazze_gps_country (str):  Example: RU.
+        json_body (Selectors):
 
     Raises:
         errors.UnexpectedStatus: If the server returns an undocumented status code and Client.raise_on_unexpected_status is True.
@@ -386,17 +314,12 @@ async def asyncio(
     return (
         await asyncio_detailed(
             client=client,
+            json_body=json_body,
             wait=wait,
             dryrun=dryrun,
             limit=limit,
             horizontal_accuracy=horizontal_accuracy,
             from_date=from_date,
             to_date=to_date,
-            advertising_id=advertising_id,
-            ip_address=ip_address,
-            wifi_ssid=wifi_ssid,
-            wifi_bssid=wifi_bssid,
-            country=country,
-            bazze_gps_country=bazze_gps_country,
         )
     ).parsed
