@@ -23,7 +23,7 @@ def _get_kwargs(
     from_date: datetime.datetime,
     to_date: datetime.datetime,
 ) -> Dict[str, Any]:
-    url = "{}/records/multiple".format(client.base_url)
+    url = "{}/records/geofence".format(client.base_url)
 
     headers: Dict[str, str] = client.get_headers()
     cookies: Dict[str, Any] = client.get_cookies()
